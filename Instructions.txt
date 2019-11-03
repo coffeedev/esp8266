@@ -1,0 +1,26 @@
+Here's the link to Amazon.
+
+Lolin NodeMCU ESP8266 CP2102 NodeMCU WIFI Serial Wireless Module https://www.amazon.in/dp/B010O1G1ES/ref=cm_sw_r_cp_apa_i_9QKVDbA5TX3BV
+
+Remember that there are various flavors of this board and on Windows 10 it resolves to a CH04 USB driver.
+
+First Install the firmware into the NODEMCU.
+Flasher can be downloaded from here : https://github.com/nodemcu/nodemcu-flasher/archive/master.zip
+
+The firmware can be found here : https://github.com/sleemanj/ESP8266_Simple/raw/master/firmware/ai-thinker-0.9.5.2-115200.bin
+
+After the firmware has been flashed, your PC should detect the board as a USB Serial CH340 on a COMX port. You can verify the COM port in your Device manager.
+
+Open Arduino IDE and go over to File->Preferences and add this "https://arduino.esp8266.com/stable/package_esp8266com_index.json". Just click on OK.
+
+Then go to Tools->Boards->Board Manager. It will update and add the required ESP8266 boards and drivers.
+
+Once done, the board you should select is "NodeMCU 1.0 (ESP-12E Module). Select the Port, Baud rate of 115200, and keep the rest at default. Once done, paste the code from the below URL. 
+
+CODE :
+https://github.com/coffeedev/esp8266/blob/master/SimpleHTTPServer.c
+
+Compile and upload the sketch.
+Once you get "Done uploading", connect your laptop to "Hello_IOT" SSID and visit 192.168.4.1.
+
+You will see buttons on the page which will carry out respective actions.

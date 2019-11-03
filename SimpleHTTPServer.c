@@ -3,12 +3,17 @@
 const short int BUILTIN_LED1 = 2; //GPIO2
 void upLed(int led);
 void downLed(int led) ;
-void blinkLed(int led, int ms) ;
+void blinkLed(int ms, int times, int led) ;
+void doSOS() ;
+String prepareHTMLPage() ;
 
-#define turnOn 0 // It's reverse
+#define DIT 400
+#define WPM 1
+#define turnOn 0
 #define turnOff 1
 
 WiFiServer server(80); //Initialize the server on Port 80
+IPAddress HTTPS_ServerIP ;
 
 void setup()
 {
@@ -16,13 +21,13 @@ void setup()
   pinMode(BUILTIN_LED1, OUTPUT);
 
   WiFi.mode(WIFI_AP); //Our ESP8266-12E is an AccessPoint
-  WiFi.softAP("Hello_IoT", "12345678"); // Provide the (SSID, password);
+  WiFi.softAP("BeltIOT", "12345678"); // Provide the (SSID, password);
 
 
   server.begin(); // Start the HTTP Server
 
   Serial.begin(115200); //Start communication between the ESP8266-12E and the monitor window
-  IPAddress HTTPS_ServerIP = WiFi.softAPIP(); // Obtain the IP of the Server
+  HTTPS_ServerIP = WiFi.softAPIP(); // Obtain the IP of the Server
   // Print the IP address
   Serial.print("Use this URL to connect: ");
   Serial.print("http://");
@@ -43,11 +48,29 @@ void downLed(int led = BUILTIN_LED1)
   digitalWrite(led, turnOff) ;
 }
 
-void blinkLed(int led = BUILTIN_LED1, int ms = 500)
+void blinkLed(int ms = 500, int times = 1, int led = BUILTIN_LED1)
 {
-  upLed(led) ;
-  delay(ms) ;
-  downLed(led) ;
+  int ctr = 0 ;
+  while (ctr < times)
+  {
+    upLed(led) ;
+    delay(ms) ;
+    downLed(led) ;
+    delay(ms) ;
+    ctr = ctr + 1 ;
+  }
+}
+
+void doSOS()
+{
+  blinkLed((DIT / WPM), 3) ;
+  delay(DIT) ;
+
+  blinkLed(((DIT * 3) / WPM), 3) ;
+  delay(DIT) ;
+
+  blinkLed((DIT / WPM), 3) ;
+  delay(DIT) ;
 
 }
 
@@ -82,33 +105,49 @@ void loop() {
     blinkLed() ;
   }
 
+  if (request.indexOf("/sos") > 0)  {
+    doSOS() ;
+  }
 
-
-    client.println("HTTP/1.1 200 OK");
-    client.println("Content-Type: text/html");
-    client.println(""); //  do not forget this one
-    client.println("<!DOCTYPE HTML>");
-    client.println("<html>");
-    client.println("<head>");
+  client.println(prepareHTMLPage()) ;
+  //client.connect(HTTPS_ServerIP, 80) ;
   
-    client.println("<meta name='apple-mobile-web-app-capable' content='yes' />");
-    client.println("<meta name='apple-mobile-web-app-status-bar-style' content='black-translucent' />");
-    client.println("</head>");
-    client.println("<body bgcolor = \"#f7e6ec\">");
-    client.println("<hr>");
-    client.println("<h1><center> Home Automation </center></h1>");
-    client.println("<hr>");
-    client.println("<br><br>");
-  
-    client.println("<center>");
-    
-    client.println("<a href=\"/on\"\"><button>Turn On </button></a><br />");
-    client.println("<a href=\"/off\"\"><button>Turn Off </button></a><br />");
-    client.println("<a href=\"/blink\"\"><button>Blink </button></a><br />");
-    client.println("</center>");
-    client.println("<br><br>");
-    client.println("</body>") ;
-    client.println("</html>");
-  
+ 
 }
 
+String prepareHTMLPage()
+{
+  String header = String("HTTP/1.1 200 OK\r\n")
+                  + "Content-Type: text/html"
+                  + " "
+                  + "Connection: close\r\n"
+                  + "\r\n" ;
+
+  String body = String(" ")
+                + "<!DOCTYPE HTML>"
+                + "<html>"
+                + "<head>"
+                + "<meta name='apple-mobile-web-app-capable' content='yes' />"
+                + "<meta name='apple-mobile-web-app-status-bar-style' content='black-translucent' />"
+                + "</head>"
+                + "<body bgcolor = \"#f7e6ec\">"
+                + "<hr>"
+                + "<h1><center> Belthur Automation </center></h1>"
+                + "<hr>"
+                + "<br><br>"
+                + "<center>"
+                + "<a href=\"/on\"\"><button style=\"font-size: 48px\">Turn On</button></a><br />"
+                + "<br/>"
+                + "<a href=\"/off\"\"><button style=\"font-size: 48px\">Turn Off</button></a><br />"
+                + "<br/>"
+                + "<a href=\"/blink\"\"><button style=\"font-size: 48px\">Blink</button></a><br />"
+                + "<br/>"
+                + "<a href=\"/sos\"\"><button style=\"font-size: 48px\">S O S</button></a><br />"
+                + "</center>"
+                + "<br><br>"
+                + "</body></html>"
+                + "\r\n";
+
+  return header + body ;
+
+}
